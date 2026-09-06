@@ -52,3 +52,9 @@ python validate_doc.py --file path/to/paper.docx --template context.yaml --out r
 ```
 
 The script prints a short summary and can write a detailed JSON report.
+
+### Sample status output
+
+See [reports/sample_validation_output.txt](reports/sample_validation_output.txt) for a complete example with all 12 checks, score, status icons, and failure reasons.
+
+Passing checks use `✅ PASS`; failed checks use `❌ FAIL`.
