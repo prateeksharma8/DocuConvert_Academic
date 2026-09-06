@@ -1,3 +1,15 @@
+# Ignore local context and secrets
+context.yaml
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# Reports (generated) - do not commit
+reports/
 ### macOS
 # Finder metadata
 .DS_Store
@@ -6,7 +18,8 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
+
 
 # Volume root files
 .DocumentRevisions-V100
