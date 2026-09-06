@@ -39,6 +39,8 @@ def build_docx(path: Path, title: str, abstract: str, sections: str):
     <w:p/>
   </w:body>
 </w:document>""")
+        zf.writestr("word/header1.xml", """<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:r><w:t>IEEE Header</w:t></w:r></w:p></w:hdr>""")
+        zf.writestr("word/footer1.xml", """<w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:r><w:t>IEEE Footer</w:t></w:r></w:p></w:ftr>""")
 
 
 class TestIEEEValidator(unittest.TestCase):
@@ -48,7 +50,7 @@ class TestIEEEValidator(unittest.TestCase):
             build_docx(
                 docx_path,
                 "A Lightweight Validation Framework for IEEE-Style Technical Documents",
-                "This abstract explains the purpose of the document and highlights the validation logic.",
+                " ".join(["This abstract explains the purpose of the document and highlights the validation logic."] * 15),
                 "The paper presents a lightweight validation framework for IEEE-style documents.",
             )
 
@@ -58,6 +60,14 @@ class TestIEEEValidator(unittest.TestCase):
             self.assertTrue(result["checks"]["abstract_present"])
             self.assertTrue(result["checks"]["author_block_present"])
             self.assertTrue(result["checks"]["section_structure_present"])
+            self.assertTrue(result["checks"]["abstract_length_valid"])
+            self.assertTrue(result["checks"]["image_quality_valid"])
+            self.assertTrue(result["checks"]["table_format_valid"])
+            self.assertTrue(result["checks"]["header_present"])
+            self.assertTrue(result["checks"]["footer_present"])
+            self.assertTrue(result["checks"]["font_consistency_valid"])
+            self.assertEqual([task["status"] for task in result["tasks"]], ["PASS"] * 12)
+            self.assertEqual(result["summary"]["score"], "12/12")
 
     def test_missing_abstract_fails(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -72,6 +82,10 @@ class TestIEEEValidator(unittest.TestCase):
             result = validate_ieee_document(docx_path)
             self.assertEqual(result["overall_status"], "FAIL")
             self.assertFalse(result["checks"]["abstract_present"])
+            self.assertEqual(
+              next(task["status"] for task in result["tasks"] if task["check"] == "abstract_present"),
+              "FAIL",
+            )
 
 
 if __name__ == "__main__":

@@ -6,7 +6,19 @@ Usage:
 """
 import argparse
 import json
+import sys
 from pathlib import Path
+
+
+def format_status(status: str) -> str:
+    if status == "PASS":
+        value = "✅ PASS"
+        color = "\033[32m"
+    else:
+        value = "❌ FAIL"
+        color = "\033[31m"
+    reset = "\033[0m" if sys.stdout.isatty() else ""
+    return f"{color}{value}{reset}"
 
 def load_template(path: Path):
     try:
@@ -36,7 +48,7 @@ def main():
     # Import validator
     from services.ieee_validator import validate_ieee_document
 
-    report = validate_ieee_document(doc_path)
+    report = validate_ieee_document(doc_path, (template or {}).get("validation", {}))
     # Attach template info if provided
     if template is not None:
         report["template"] = template
@@ -54,9 +66,12 @@ def main():
     else:
         print("Validation report for:", doc_path)
         print("Overall status:", report.get("overall_status"))
-        checks = report.get("checks", {})
-        for name, passed in checks.items():
-            print(f" - {name}: {'PASS' if passed else 'FAIL'}")
+        summary = report.get("summary", {})
+        if summary:
+            print(f"Score: {summary['score']} ({summary['passed']} passed, {summary['failed']} failed)")
+        print("Tasks:")
+        for task in report.get("tasks", []):
+                print(f" - {task['task']}: {format_status(task['status'])}")
         notes = report.get("notes", [])
         if notes:
             print("Notes:")
