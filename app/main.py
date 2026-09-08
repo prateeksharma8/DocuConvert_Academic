@@ -6,6 +6,7 @@ from typing import List
 
 from services.markdown_service import parse_markdown_to_html
 from services.export_service import export_document
+from services.docx_transform_service import transform_docx
 
 app = FastAPI(title="GenerateDocs")
 
@@ -83,3 +84,21 @@ async def generate_document(
     html_content = parse_markdown_to_html(markdown, title, template)
     output_file = export_document(html_content, title, format, saved_images)
     return FileResponse(path=str(output_file), filename=output_file.name, media_type="application/octet-stream")
+
+
+@app.post("/transform-docx")
+async def transform_uploaded_docx(
+    source: UploadFile = File(...),
+    template_file: UploadFile = File(...),
+):
+    source_path = UPLOAD_DIR / "source_input.docx"
+    template_path = UPLOAD_DIR / "layout_template.docx"
+    output_path = OUTPUT_DIR / "formatted_document.docx"
+    source_path.write_bytes(await source.read())
+    template_path.write_bytes(await template_file.read())
+    transform_docx(source_path, template_path, output_path)
+    return FileResponse(
+        path=str(output_path),
+        filename=output_path.name,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
